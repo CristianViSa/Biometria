@@ -1,6 +1,7 @@
-import numpy as np
 import matplotlib.pyplot as plt
+
 DATA_PATH = "data/"
+
 
 def read_file(filename, label):
     file = open(filename, 'r')
@@ -11,7 +12,8 @@ def read_file(filename, label):
         scores.append([score, label])
     return scores
 
-def roc(scores):
+
+def roc(scores, positives, negatives):
     values = [val[0] for val in scores]
     labels = [lab[1] for lab in scores]
 
@@ -21,31 +23,24 @@ def roc(scores):
     for val in values:
         if val not in thresholds:
             thresholds.append(val)
-    print(thresholds)
-    print(values)
-    print(labels)
-    p = 0
-    n = 0
-    for lab in labels:
-        if lab == 0:
-            n += 1
-        else:
-            p += 1
-    print(p)
-
     for th in thresholds:
-        FP = 0
-        TP = 0
+        fp = 0
+        tp = 0
         for i in range(len(values)):
-            if (values[i] > th):
+            if values[i] > th:
                 if labels[i] == 1:
-                    TP = TP + 1
+                    tp = tp + 1
                 elif labels[i] == 0:
-                    FP = FP + 1
-        fpr.append(FP/n)
-        tpr.append(TP/p)
-    plt.scatter(fpr, tpr)
+                    fp = fp + 1
+        fpr.append(fp / negatives)
+        tpr.append(tp / positives)
+    plt.plot(fpr, tpr)
+    plt.title("ROC")
+    plt.axis([0, 1, 0, 1])
+    plt.savefig("aoc.png")
     plt.show()
+
+
 """
     Columna de clientes, desechar
     3 parametros, fichero clientes, fichero impostores y  X
@@ -63,5 +58,4 @@ if __name__ == '__main__':
     scores_i = read_file(DATA_PATH + "scoresA_impostores", 0)
     scores = scores_i + scores_c
     scores = sorted(scores)
-    roc(scores)
-
+    roc(scores, len(scores_c), len(scores_i))
