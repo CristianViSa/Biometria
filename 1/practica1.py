@@ -13,7 +13,10 @@ def read_file(filename, label):
     return scores
 
 
-def roc(scores, positives, negatives):
+def auc():
+    1==1
+
+def roc(scores, positives, negatives, plot=True):
     values = [val[0] for val in scores]
     labels = [lab[1] for lab in scores]
 
@@ -34,11 +37,12 @@ def roc(scores, positives, negatives):
                     fp = fp + 1
         fpr.append(fp / negatives)
         tpr.append(tp / positives)
-    plt.plot(fpr, tpr)
-    plt.title("ROC")
-    plt.axis([0, 1, 0, 1])
-    plt.savefig("aoc.png")
-    plt.show()
+    if plot:
+        plt.plot(fpr, tpr)
+        plt.title("ROC")
+        plt.axis([0, 1, 0, 1])
+        plt.savefig("aoc.png")
+        plt.show()
 
 
 """
