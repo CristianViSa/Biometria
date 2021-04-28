@@ -25,39 +25,10 @@ def read_files(clients_filename, impostors_filename):
     return np.array(sorted(scores))
 
 def d_prime(scores):
-    # impostor_scores = np.array([float(val[0]) for val in scores if val[1] == 0])
-    # client_scores = np.array([float(val[0]) for val in scores if val[1] == 1])
-    # c_mean = np.mean(client_scores)
-    # i_mean = np.std(impostor_scores)
-    # c_var = np.std(client_scores)
-    # c_var = c_var * c_var
-    # i_var = np.var(impostor_scores)
-    # i_var = i_var * i_var
-    #
-    # d_prime = (c_mean - i_mean) / (math.sqrt(c_var + i_var))
-    # print(d_prime)
-    c_mean = 0
-    i_mean = 0
-    c_var = 0
-    i_var = 0
-    num_c = 0
-    num_i = 0
-    for score, label in scores:
-        if label == 1:
-            num_c += 1
-            d = score - c_mean
-            c_mean += d / num_c
-            c_var += (num_c - 1) * (d**2) / num_c
-        else:
-            num_i += 1
-            d = score - i_mean
-            i_mean += d / num_i
-            i_var += (num_i - 1) * (d ** 2) / num_i
-    c_var = c_var / (num_c - 1)
-    i_var = i_var / (num_i - 1)
-    d_prime =  abs(c_mean - i_mean) / math.sqrt(c_var + i_var)
+    impostor_scores = np.array([float(val[0]) for val in scores if val[1] == 0])
+    client_scores = np.array([float(val[0]) for val in scores if val[1] == 1])
+    d_prime = abs(impostor_scores.mean() - client_scores.mean()) / (math.sqrt(impostor_scores.var() + client_scores.var()))
 
-    print(d_prime)
     return d_prime
 
 def auc(values, labels):
