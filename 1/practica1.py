@@ -1,39 +1,81 @@
+import math
+
 import matplotlib.pyplot as plt
+import numpy as np
 import scipy.stats as stats
+from scipy.stats import norm
 from sklearn.metrics import roc_auc_score
 
 
 DATA_PATH = "data/"
 
 
-def read_file(filename, label):
-    file = open(filename, 'r')
+def read_files(clients_filename, impostors_filename):
+    clients_file = open(clients_filename, 'r')
+    impostors_file = open(impostors_filename, 'r')
     # Formato : Cliente Score
     scores = []
-    for line in file:
+    for line in clients_file:
         client, score = line.split()
-        scores.append([score, label])
-    return scores
+        scores.append((float(score), 1))
 
+    for line in impostors_file:
+        client, score = line.split()
+        scores.append((float(score), 0))
+    return np.array(sorted(scores))
 
-def auc():
-    1==1
+def d_prime(scores):
+    c_mean = 0
+    i_mean = 0
+    c_var = 0
+    i_var = 0
+    num_c = 0
+    num_i = 0
+    for score, label in scores:
+        if label == 1:
+            num_c += 1
+            d = score - c_mean
+            c_mean += d / num_c
+            c_var += (num_c - 1) * (d**2) / num_c
+        else:
+            num_i += 1
+            d = score - i_mean
+            i_mean += d / num_i
+            i_var += (num_i - 1) * (d ** 2) / num_i
+    c_var = c_var / (num_c - 1)
+    i_var = i_var / (num_i - 1)
+    d_prime =  abs(c_mean - i_mean) / math.sqrt(c_var + i_var)
 
-def roc(scores, positives, negatives, plot=True):
-    values = [val[0] for val in scores]
-    labels = [lab[1] for lab in scores]
-    test = roc_auc_score(labels, values)
-    n1 = positives
-    n0 = len(scores) - n1
-    print("AUC : ")
-    print(test)
-    print(1 - 0.8831634391249776)
+    print(d_prime)
+    return d_prime
+
+def auc(values, labels):
+    order = np.argsort(values)
+    rank = np.argsort(order)
+    rank += 1
+    positives = np.sum(labels==1)
+    negatives = len(labels) - positives
+    U1 = np.sum(rank[labels == 1]) - positives * (positives + 1) / 2
+    U0 = np.sum(rank[labels == 0]) - negatives * (negatives + 1) / 2
+
+    AUC1 = U1 / (positives * negatives)
+    AUC0 = U0 / (positives * negatives)
+
+    print(AUC1)
+    return AUC1
+
+def roc(scores, plot=True):
+
+    values = np.array([float(val[0]) for val in scores])
+    labels = np.array([int(lab[1]) for lab in scores])
+    positives = np.sum(labels==1)
+    negatives = len(labels) - positives
+
     fpr = []
     tpr = []
     thresholds = []
     for val in values:
-        if val not in thresholds:
-            thresholds.append(val)
+        thresholds.append(val)
     for th in thresholds:
         fp = 0
         tp = 0
@@ -51,8 +93,8 @@ def roc(scores, positives, negatives, plot=True):
         plt.axis([0, 1, 0, 1])
         plt.savefig("aoc.png")
         plt.show()
-
-
+    auc(values, labels)
+    return fpr, tpr
 """
     Columna de clientes, desechar
     3 parametros, fichero clientes, fichero impostores y  X
@@ -66,19 +108,13 @@ def roc(scores, positives, negatives, plot=True):
 """
 
 if __name__ == '__main__':
-    scores_c = read_file(DATA_PATH + "scoresA_clientes", 1)
-    scores_i = read_file(DATA_PATH + "scoresA_impostores", 0)
-    values1 = [val[0] for val in scores_c]
-    values2 = [val[0] for val in scores_i]
-    u_statistic, pVal = stats.mannwhitneyu(values1, values2)
-    multi = len(values1) * len(values2)
+    scores = read_files(DATA_PATH + "scoresA_clientes", DATA_PATH + "scoresA_impostores")
     # Print results
-
-    print('P value:')
-    print(pVal)
-    print('EL AUC QUE PARECE SER')
-    print(u_statistic /multi)
-    scores = scores_i + scores_c
-    scores = sorted(scores)
-    roc(scores, len(scores_c), len(scores_i))
+    # print('P value:')
+    # print(pVal)
+    # print('EL AUC QUE PARECE SER')
+    # print(u_statistic /multi)
+    fpr, tpr = roc(scores, plot=False)
+    d_prime(scores)
+    #print(len(fpr))
 
