@@ -25,6 +25,17 @@ def read_files(clients_filename, impostors_filename):
     return np.array(sorted(scores))
 
 def d_prime(scores):
+    # impostor_scores = np.array([float(val[0]) for val in scores if val[1] == 0])
+    # client_scores = np.array([float(val[0]) for val in scores if val[1] == 1])
+    # c_mean = np.mean(client_scores)
+    # i_mean = np.std(impostor_scores)
+    # c_var = np.std(client_scores)
+    # c_var = c_var * c_var
+    # i_var = np.var(impostor_scores)
+    # i_var = i_var * i_var
+    #
+    # d_prime = (c_mean - i_mean) / (math.sqrt(c_var + i_var))
+    # print(d_prime)
     c_mean = 0
     i_mean = 0
     c_var = 0
