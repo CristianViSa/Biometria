@@ -2,13 +2,9 @@ import math
 
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy.stats as stats
-from scipy.stats import norm
-from sklearn.metrics import roc_auc_score
-
+import argparse
 
 DATA_PATH = "data/"
-
 
 
 def read_files(clients_filename, impostors_filename):
@@ -68,19 +64,18 @@ def d_prime(scores):
 
     return d_prime
 
-def auc(values, labels):
+def auc(scores):
+    values = np.array([float(val[0]) for val in scores])
+    labels = np.array([int(lab[1]) for lab in scores])
     order = np.argsort(values)
     rank = np.argsort(order)
     rank += 1
     positives = np.sum(labels==1)
     negatives = len(labels) - positives
     U1 = np.sum(rank[labels == 1]) - positives * (positives + 1) / 2
-    U0 = np.sum(rank[labels == 0]) - negatives * (negatives + 1) / 2
 
     AUC1 = U1 / (positives * negatives)
-    AUC0 = U0 / (positives * negatives)
 
-    print(AUC1)
     return AUC1
 
 def roc(scores, plot=True):
@@ -118,21 +113,63 @@ def roc(scores, plot=True):
         fnr.append(fn / positives)
         tnr.append(tn / negatives)
     if plot:
-        plt.plot(fpr, tpr)
+        fig, ax = plt.subplots()
+        ax.plot(fpr, tpr)
+        ax.set_ylabel('1 - FNR')
+        ax.set_xlabel('FPR')
         plt.title("ROC")
         plt.axis([0, 1, 0, 1])
-        plt.savefig("aoc.png")
+        plt.savefig("roc.png")
         plt.show()
-    auc(values, labels)
     return fpr, tpr, fnr, tnr, thresholds
 
 
 if __name__ == '__main__':
-    #args = parse_args()
-    scores = read_files(DATA_PATH + "scoresA_clientes", DATA_PATH + "scoresA_impostores")
-    fpr, tpr ,fnr, tnr, thresholds = roc(scores, plot=False)
-    fp, fn, th = FNatFP(fpr, fnr, thresholds, 0.2)
-    fp, fn, th = FPatFN(fpr, fnr, thresholds, 0.2)
+    # ArgPaser
+    parser = argparse.ArgumentParser(description='Practica 1 Biometria')
+    parser.add_argument('-x', '--x', type=float, default=0.5,
+                        help='Valor de x para calcular FP(FN=x), FN(FP=x)')
+    parser.add_argument('-c', '--clients', type=str, default='scoresA_clientes',
+                        help='nombre del fichero con datos de clientes')
+    parser.add_argument('-i', '--impostors', type=str, default='scoresA_impostores',
+                        help='nombre del fichero con datos de impostores')
+
+    args = parser.parse_args()
+    x = args.x
+    clients_filename = args.clients
+    impostors_filename = args.impostors
+
+    scores = read_files(DATA_PATH + clients_filename, DATA_PATH + impostors_filename)
+    # Curva ROC, guarda un fichero png (roc.png)
+    fpr, tpr ,fnr, tnr, thresholds = roc(scores, plot=True)
+    # FP (FN = X) y umbral
+    print("FP cuando FN = ", x)
+    fp, fn, th = FPatFN(fpr, fnr, thresholds, x)
+    print("FP = ", fp)
+    print("FN = ", fn)
+    print("Umbral = ", th)
+    print("------------------------------")
+
+    # FN (FP = X) y umbral
+    print("FN cuando FP = ", x)
+    fp, fn, th = FNatFP(fpr, fnr, thresholds, x)
+    print("FP = ", fp)
+    print("FN = ", fn)
+    print("Umbral = ", th)
+    print("------------------------------")
+
+    # FP = FN y umbral
+    print("Umbral cuando FN = FP ")
     fp, fn, th = FnFp(fpr, fnr, thresholds)
-    d_prime(scores)
+    print("FP = ", fp)
+    print("FN = ", fn)
+    print("Umbral = ", th)
+    print("------------------------------")
+
+    # Area bajo la curva ROC
+    print("Area bajo la curva ROC = " , auc(scores))
+    print("------------------------------")
+
+    # D-Prime
+    print("Valor D-Prime = ", d_prime(scores))
 
