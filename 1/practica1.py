@@ -23,39 +23,32 @@ def read_files(clients_filename, impostors_filename):
 
 
 def FnFp(fpr, fnr, thresholds):
-    best_dif= 1
-    index = 0
-    for i in range(len(thresholds)):
-        fp = fpr[i]
-        fn = fnr[i]
-        th = thresholds[i]
-        if fp == fn:
-            return fp, fn, th
-        else:
-            dif = abs(fp-fn)
-            if best_dif > dif:
-                best_dif = dif
-                index = i
-    return fpr[index], fnr[index], thresholds[index]
+    dif = np.abs(fnr-fpr)
+    arg_min_dif = np.argmin(dif)
+
+    th = thresholds[arg_min_dif]
+    fp = fpr[arg_min_dif]
+    fn = fnr[arg_min_dif]
+
+    return fp, fn, th
 
 def FNatFP(fpr, fnr, thresholds, x):
-    for i in range(len(thresholds)):
-        fp = fpr[i]
-        fn = fnr[i]
-        th = thresholds[i]
-        if fp <= x:
-            return fp, fn, th
-    return None, None, None
+    dif = np.abs(fnr-x)
+    arg_min_dif = np.argmin(dif)
+    th = thresholds[arg_min_dif]
+    fp = fpr[arg_min_dif]
+    fn = fnr[arg_min_dif]
 
+    return fp, fn, th
+def FPatFN(fpr, fnr,  thresholds, x):
+    dif = np.abs(fpr-x)
+    arg_min_dif = np.argmin(dif)
 
-def FPatFN(fnr, fpr,  thresholds, x):
-    for i in range(len(thresholds)):
-        fp = fpr[i]
-        fn = fnr[i]
-        th = thresholds[i]
-        if fn <= x:
-            return fp, fn, th
-    return None, None, None
+    th = thresholds[arg_min_dif]
+    fp = fpr[arg_min_dif]
+    fn = fnr[arg_min_dif]
+
+    return fp, fn, th
 
 def d_prime(scores):
     impostor_scores = np.array([float(val[0]) for val in scores if val[1] == 0])
@@ -121,13 +114,13 @@ def roc(scores, plot=True):
         plt.axis([0, 1, 0, 1])
         plt.savefig("roc.png")
         plt.show()
-    return fpr, tpr, fnr, tnr, thresholds
+    return np.array(fpr), np.array(tpr), np.array(fnr), np.array(tnr), np.array(thresholds)
 
 
 if __name__ == '__main__':
     # ArgPaser
     parser = argparse.ArgumentParser(description='Practica 1 Biometria')
-    parser.add_argument('-x', '--x', type=float, default=0.5,
+    parser.add_argument('-x', '--x', type=float, default=0.05,
                         help='Valor de x para calcular FP(FN=x), FN(FP=x)')
     parser.add_argument('-c', '--clients', type=str, default='scoresA_clientes',
                         help='nombre del fichero con datos de clientes')
