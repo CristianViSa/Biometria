@@ -10,6 +10,7 @@ from sklearn.metrics import roc_auc_score
 DATA_PATH = "data/"
 
 
+
 def read_files(clients_filename, impostors_filename):
     clients_file = open(clients_filename, 'r')
     impostors_file = open(impostors_filename, 'r')
@@ -23,6 +24,42 @@ def read_files(clients_filename, impostors_filename):
         client, score = line.split()
         scores.append((float(score), 0))
     return np.array(sorted(scores))
+
+
+def FnFp(fpr, fnr, thresholds):
+    best_dif= 1
+    index = 0
+    for i in range(len(thresholds)):
+        fp = fpr[i]
+        fn = fnr[i]
+        th = thresholds[i]
+        if fp == fn:
+            return fp, fn, th
+        else:
+            dif = abs(fp-fn)
+            if best_dif > dif:
+                best_dif = dif
+                index = i
+    return fpr[index], fnr[index], thresholds[index]
+
+def FNatFP(fpr, fnr, thresholds, x):
+    for i in range(len(thresholds)):
+        fp = fpr[i]
+        fn = fnr[i]
+        th = thresholds[i]
+        if fp <= x:
+            return fp, fn, th
+    return None, None, None
+
+
+def FPatFN(fnr, fpr,  thresholds, x):
+    for i in range(len(thresholds)):
+        fp = fpr[i]
+        fn = fnr[i]
+        th = thresholds[i]
+        if fn <= x:
+            return fp, fn, th
+    return None, None, None
 
 def d_prime(scores):
     impostor_scores = np.array([float(val[0]) for val in scores if val[1] == 0])
@@ -55,20 +92,31 @@ def roc(scores, plot=True):
 
     fpr = []
     tpr = []
+    fnr = []
+    tnr = []
     thresholds = []
     for val in values:
         thresholds.append(val)
     for th in thresholds:
         fp = 0
         tp = 0
+        fn = 0
+        tn = 0
         for i in range(len(values)):
             if values[i] > th:
                 if labels[i] == 1:
                     tp = tp + 1
                 elif labels[i] == 0:
                     fp = fp + 1
+            else:
+                if labels[i] == 1:
+                    fn = fn + 1
+                elif labels[i] == 0:
+                    tn = tn + 1
         fpr.append(fp / negatives)
         tpr.append(tp / positives)
+        fnr.append(fn / positives)
+        tnr.append(tn / negatives)
     if plot:
         plt.plot(fpr, tpr)
         plt.title("ROC")
@@ -76,27 +124,15 @@ def roc(scores, plot=True):
         plt.savefig("aoc.png")
         plt.show()
     auc(values, labels)
-    return fpr, tpr
-"""
-    Columna de clientes, desechar
-    3 parametros, fichero clientes, fichero impostores y  X
-    PDF con memoria y algunos resultados
-    PARA calcular auc --> mann whitney stadistic
-     - buen punto FN = FP
-     - FP(FN = X) --> Alto confort, acepta clientes facilmente X = 1% , ¿que umbral provee? el que mas se acerce a dicho valor
-     - FN(FP = X) --> Alta seguridad, no acepta clientes facilmente X = 
-     - Si hay mas de un umbral que da el mismo umero de FN o FP, elegir el umbral que minimize la otra metrica de error
-    D prime es proporcional a la resta de las medias  e inversamente proporcional a las varianzas
-"""
+    return fpr, tpr, fnr, tnr, thresholds
+
 
 if __name__ == '__main__':
+    #args = parse_args()
     scores = read_files(DATA_PATH + "scoresA_clientes", DATA_PATH + "scoresA_impostores")
-    # Print results
-    # print('P value:')
-    # print(pVal)
-    # print('EL AUC QUE PARECE SER')
-    # print(u_statistic /multi)
-    fpr, tpr = roc(scores, plot=False)
+    fpr, tpr ,fnr, tnr, thresholds = roc(scores, plot=False)
+    fp, fn, th = FNatFP(fpr, fnr, thresholds, 0.2)
+    fp, fn, th = FPatFN(fpr, fnr, thresholds, 0.2)
+    fp, fn, th = FnFp(fpr, fnr, thresholds)
     d_prime(scores)
-    #print(len(fpr))
 
