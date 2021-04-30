@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.neighbors import KNeighborsClassifier
+from numpy import linalg as LA
 
 TRAIN_DATA_PATH = "data/Train/"
 TEST_DATA_PATH = "data/Test"
@@ -53,12 +54,35 @@ def read_images(dir):
     print("Imagenes procesadas %d total de individuos %d tamañoImagen %s " % (len(images), len(set(labels)), size))
     return np.matrix(images), labels
 
+def calculate_PCA(images):
+    images = images.T
+    d = images.shape[0]
+    n = images.shape[1]
+    # print(images.shape)
+    # print(d, n)
+    # print("d = ", d , "n = ", n)
+    mean = images.mean(axis=1)
+    A = images - mean
+    # print("A : " ,A.shape)
+    C = float(1/d) * A.T * A
 
+    D_p, B_p = LA.eig(C)
+    # print("C : " ,C.shape)
+    # print("D_p : " ,D_p.shape)
+    # print("B_p : " ,B_p.shape)
+    # Ordenar los eigenvalues y eigenvectors
+    sort_indices = D_p.argsort()[::-1]
+    D_p = D_p[sort_indices]
+    B_p = B_p[:, sort_indices]
+    B = A * B_p
+    D = float(d/n) * D_p
+    # print(D)
+    return D/LA.norm(B, axis = 0)
 
 if __name__ == '__main__':
     train_images, train_labels = read_images(TRAIN_DATA_PATH)
     test_images, test_labels = read_images(TEST_DATA_PATH)
-    print(train_images.shape)
+    calculate_PCA(train_images)
     #pca = PCA().fit(train_images)
 
     # Ver matriz con la varianza
@@ -79,7 +103,7 @@ if __name__ == '__main__':
     #     clf = KNeighborsClassifier(n_neighbors = 1)
     #     clf.fit(tr_img, train_labels)
     #     results.append(clf.score(tst_img, test_labels))
-    #     pca.
+    #
     # print(results)
     # print(np.where(variance_sum > 0.95))
     # plt.plot(list(range(1, 200)), results)
@@ -91,3 +115,5 @@ if __name__ == '__main__':
     # n = 200
     # d = 100x100 casi
     # Truco --> No calcular diagonalizacion Cdxd se calcula C`nxn
+    # Ojo, cuando n es mucho mas pequeño que d
+    # Despues, hay que hacer dichos vectores ortonormales
