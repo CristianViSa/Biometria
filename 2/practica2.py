@@ -12,6 +12,10 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
+def plot_faces(image):
+    plt.imshow(np.reshape(image[0], image[1]))  # Usage example
+    plt.show()
+
 # Metodo extraido de https://intellipaat.com/community/7530/how-to-read-pgm-p2-image-in-python
 def read_pgm(name):
     with open(name) as f:
@@ -42,19 +46,15 @@ def read_images(dir):
                 images.append(image[0])
                 size = image[1]
                 labels.append(str(folder))
-                # plt.imshow(np.reshape(image[0], image[1]))  # Usage example
-                # plt.show()
+                #plot_faces(image)
         except:
             print("File not found", folder)
+    print("Imagenes procesadas %d total de individuos %d tamañoImagen %s " % (len(images), len(set(labels)), size))
     return np.matrix(images), labels
 
 
-# data = readpgm(TRAIN_DATA_PATH + "s1/1.pgm")
-# print(data)
-# plt.imshow(np.reshape(data[0], data[1]))  # Usage example
-# plt.show()
 
-read_images(TRAIN_DATA_PATH)
 if __name__ == '__main__':
-    pass
+    train_images, train_labels = read_images(TRAIN_DATA_PATH)
+    test_images, test_labels = read_images(TEST_DATA_PATH)
 
