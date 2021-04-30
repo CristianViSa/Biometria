@@ -77,12 +77,40 @@ def calculate_PCA(images):
     B = A * B_p
     D = float(d/n) * D_p
     # print(D)
-    return D/LA.norm(B, axis = 0)
+    return B/LA.norm(B, axis = 0)
+
+def transform(images, matrix, dimensions):
+    eigenvectors = matrix[:, 1:dimensions+1]
+    mean = images.mean(axis = 0)
+    transformed_images = (images-mean) * eigenvectors
+
+    return transformed_images
 
 if __name__ == '__main__':
     train_images, train_labels = read_images(TRAIN_DATA_PATH)
     test_images, test_labels = read_images(TEST_DATA_PATH)
-    calculate_PCA(train_images)
+    matrix = calculate_PCA(train_images)
+    plt.imshow(np.reshape(matrix[:, 7], (112, 92)))
+    plt.show()
+
+    train = transform(train_images, matrix, 179)
+    test = transform(test_images, matrix, 179)
+
+    clf = KNeighborsClassifier(n_neighbors = 1)
+    clf.fit(train, train_labels)
+    print(clf.score(test, test_labels))
+
+    scores = []
+    matrix = calculate_PCA(train_images)
+    for dim in range(1, 200):
+        train = transform(train_images, matrix, dim)
+        test = transform(test_images, matrix, dim)
+        clf = KNeighborsClassifier(n_neighbors=1)
+        clf.fit(train, train_labels)
+        scores.append(clf.score(test, test_labels))
+    scores = np.array(scores)
+    print("Best result ", np.amax(scores), "with " , np.argmax(scores), " components")
+
     #pca = PCA().fit(train_images)
 
     # Ver matriz con la varianza
