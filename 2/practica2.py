@@ -1,18 +1,13 @@
 import os
 
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.decomposition import PCA
 from sklearn.neighbors import KNeighborsClassifier
 from numpy import linalg as LA
 
 TRAIN_DATA_PATH = "data/Train/"
 TEST_DATA_PATH = "data/Test"
 
-import numpy as np
-
-import matplotlib.pyplot as plt
 
 def plot_faces(image):
     plt.imshow(np.reshape(image[0], image[1]))  # Usage example
@@ -51,7 +46,7 @@ def read_images(dir):
                 #plot_faces(image)
         except:
             print("File not found", folder)
-    print("Imagenes procesadas %d total de individuos %d tamañoImagen %s " % (len(images), len(set(labels)), size))
+    print("Imagenes procesadas ", (len(images), "total de individuos ", len(set(labels)), " tamañoImagen " , size))
     return np.matrix(images), labels
 
 def calculate_PCA(images):
