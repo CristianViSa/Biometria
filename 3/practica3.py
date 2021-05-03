@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.neighbors import KNeighborsClassifier
 from numpy import linalg as LA
 import scipy.linalg as scipylg
+from sklearn.preprocessing import StandardScaler
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 TRAIN_DATA_PATH = "data/Train/"
 TEST_DATA_PATH = "data/Test"
@@ -64,18 +65,12 @@ def calculateLDA(matrix, labels):
         SB += class_samples *  (MU_class - MU) *  (MU_class - MU).T
         SW += (matrix_class - MU_class) * (matrix_class - MU_class).T
 
-    try:
-        SWi = LA.inv(SW).dot(SB)
-        D, B = np.linalg.eig(SWi)
-        D, B = scipylg.eig(SB, SW)
-        # -> eigenvector v = [:,i] column vector, transpose for easier calculations
-        # sort eigenvalues high to low
+        A = LA.inv(SW).dot(SB)
+        D, B = LA.eig(A)
+
         sort_indexes = D.argsort()[::-1]
         D = D[sort_indexes]
         B = B[:, sort_indexes]
-
-    except:
-        print("SW has no inverse")
 
     return B
 
@@ -118,8 +113,8 @@ if __name__ == '__main__':
     test_images, test_labels = read_images(TEST_DATA_PATH)
 
     PCA_matrix = calculate_PCA(train_images)
-    train_reduced_pca = transform(train_images, PCA_matrix, 200)
-    test_reduced_pca = transform(test_images, PCA_matrix, 200)
+    train_reduced_pca = transform(train_images, PCA_matrix, 40)
+    test_reduced_pca = transform(test_images, PCA_matrix, 40)
 
     LDA_matrix = calculateLDA(train_reduced_pca.T, np.array(train_labels))
     scores = []
