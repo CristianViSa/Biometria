@@ -62,8 +62,8 @@ def calculateLDA(matrix, labels):
         MU_class = matrix_class.mean(axis = 1)
         class_samples = matrix_class.shape[1]
 
-        SB += class_samples *  (MU_class - MU) *  (MU_class - MU).T
-        SW += (matrix_class - MU_class) * (matrix_class - MU_class).T
+        SB += class_samples *  (MU_class - MU).dot((MU_class - MU).T)
+        SW += (matrix_class - MU_class).dot((matrix_class - MU_class).T)
 
         A = LA.inv(SW).dot(SB)
         D, B = LA.eig(A)
@@ -124,6 +124,7 @@ if __name__ == '__main__':
         clf = KNeighborsClassifier(n_neighbors=1)
         clf.fit(train_reduced_LDA, train_labels)
         scores.append(clf.score(test_reduced_LDA, test_labels))
+
     scores = np.array(scores)
     print("Best result ", np.amax(scores), "with ", np.argmax(scores), " components")
     plt.plot(scores)
