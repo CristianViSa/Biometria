@@ -66,9 +66,9 @@ def calculate_PCA(images):
     # print("D_p : " ,D_p.shape)
     # print("B_p : " ,B_p.shape)
     # Ordenar los eigenvalues y eigenvectors
-    sort_indices = D_p.argsort()[::-1]
-    D_p = D_p[sort_indices]
-    B_p = B_p[:, sort_indices]
+    sort_indexes = D_p.argsort()[::-1]
+    D_p = D_p[sort_indexes]
+    B_p = B_p[:, sort_indexes]
     B = A * B_p
     D = float(d/n) * D_p
     # print(D)
