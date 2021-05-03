@@ -79,8 +79,8 @@ def calculate_PCA(images):
     # print(D)
     return B/LA.norm(B, axis = 0)
 
-def transform(images, matrix, dimensions):
-    eigenvectors = matrix[:, 1:dimensions+1]
+def transform(images, matrix, dim):
+    eigenvectors = matrix[:, 1 : dim + 1]
     mean = images.mean(axis = 0)
     transformed_images = (images-mean) * eigenvectors
 
@@ -105,43 +105,14 @@ if __name__ == '__main__':
     for dim in range(1, 200):
         train = transform(train_images, matrix, dim)
         test = transform(test_images, matrix, dim)
-        clf = KNeighborsClassifier(n_neighbors=1)
+        clf = KNeighborsClassifier(n_neighbors = 1)
         clf.fit(train, train_labels)
         scores.append(clf.score(test, test_labels))
     scores = np.array(scores)
     print("Best result ", np.amax(scores), "with " , np.argmax(scores), " components")
 
-    #pca = PCA().fit(train_images)
-
-    # Ver matriz con la varianza
-    # plt.figure(figsize=(18, 7))
-    # plt.plot(pca.explained_variance_ratio_.cumsum())
-    # print(np.where(pca.explained_variance_ratio_.cumsum() > 0.95))
-    # plt.show()
-    # Comprobar donde la energia (varianza) es mayor de un 95
-    # PCA CON SKLEARN
-    # results = []
-    # variance_sum = []
-    # for i in range(1, 100):
-    #     pca = PCA(n_components=i)
-    #     tr_img = pca.fit_transform(train_images)
-    #
-    #     variance_sum = pca.explained_variance_ratio_.cumsum()
-    #     tst_img = pca.transform(test_images)
-    #     clf = KNeighborsClassifier(n_neighbors = 1)
-    #     clf.fit(tr_img, train_labels)
-    #     results.append(clf.score(tst_img, test_labels))
-    #
-    # print(results)
-    # print(np.where(variance_sum > 0.95))
-    # plt.plot(list(range(1, 200)), results)
-    # plt.xlabel("dimensiones")
-    # plt.ylabel("accuracy")
-    # plt.plot()
-    # results = np.array(results)
-    # print("Best result ", np.amax(results), "with " , np.argmax(results), " components")
-    # n = 200
-    # d = 100x100 casi
-    # Truco --> No calcular diagonalizacion Cdxd se calcula C`nxn
-    # Ojo, cuando n es mucho mas pequeño que d
-    # Despues, hay que hacer dichos vectores ortonormales
+    plt.figure(figsize=(18, 7))
+    plt.plot(scores)
+    plt.xlabel("dimensions")
+    plt.ylabel("accuracy")
+    plt.show()
