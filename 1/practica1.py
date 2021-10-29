@@ -33,21 +33,32 @@ def FnFp(fpr, fnr, thresholds):
     return fp, fn, th
 
 def FNatFP(fpr, fnr, thresholds, x):
-    dif = np.abs(fnr-x)
-    arg_min_dif = np.argmin(dif)
-    th = thresholds[arg_min_dif]
-    fp = fpr[arg_min_dif]
-    fn = fnr[arg_min_dif]
-
+    dif = np.abs(fpr-x)
+    minindex = np.where(dif == dif.min())
+    minfn = 1
+    finalindex = 0
+    for index in minindex[0]:
+        fn = fnr[index]
+        if(fn < minfn):
+            finalindex = index
+            minfn = fn
+    th = thresholds[finalindex]
+    fp = fpr[finalindex]
+    fn = fnr[finalindex]
     return fp, fn, th
 def FPatFN(fpr, fnr,  thresholds, x):
-    dif = np.abs(fpr-x)
-    arg_min_dif = np.argmin(dif)
-
-    th = thresholds[arg_min_dif]
-    fp = fpr[arg_min_dif]
-    fn = fnr[arg_min_dif]
-
+    dif = np.abs(fnr-x)
+    minindex = np.where(dif == dif.min())
+    minfp = 1
+    finalindex = 0
+    for index in minindex[0]:
+        fp = fpr[index]
+        if(fp < minfp):
+            finalindex = index
+            minfp = fp
+    th = thresholds[finalindex]
+    fp = fpr[finalindex]
+    fn = fnr[finalindex]
     return fp, fn, th
 
 def d_prime(scores):
@@ -122,9 +133,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Practica 1 Biometria')
     parser.add_argument('-x', '--x', type=float, default=0.05,
                         help='Valor de x para calcular FP(FN=x), FN(FP=x)')
-    parser.add_argument('-c', '--clients', type=str, default='scoresA_clientes',
+    parser.add_argument('-c', '--clients', type=str, default='scoresB_clientes',
                         help='nombre del fichero con datos de clientes')
-    parser.add_argument('-i', '--impostors', type=str, default='scoresA_impostores',
+    parser.add_argument('-i', '--impostors', type=str, default='scoresB_impostores',
                         help='nombre del fichero con datos de impostores')
 
     args = parser.parse_args()
