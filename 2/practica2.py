@@ -8,11 +8,6 @@ from numpy import linalg as LA
 TRAIN_DATA_PATH = "data/Train/"
 TEST_DATA_PATH = "data/Test"
 
-
-def plot_faces(image):
-    plt.imshow(np.reshape(image[0], image[1]))  # Usage example
-    plt.show()
-
 # Metodo extraido de https://intellipaat.com/community/7530/how-to-read-pgm-p2-image-in-python
 def read_pgm(name):
     with open(name) as f:
@@ -46,32 +41,25 @@ def read_images(dir):
                 #plot_faces(image)
         except:
             print("File not found", folder)
-    print("Imagenes procesadas ", (len(images), "total de individuos ", len(set(labels)), " tamañoImagen " , size))
     return np.matrix(images), labels
 
 def calculate_PCA(images):
     images = images.T
+
     d = images.shape[0]
     n = images.shape[1]
-    # print(images.shape)
-    # print(d, n)
-    # print("d = ", d , "n = ", n)
+
     mean = images.mean(axis=1)
     A = images - mean
-    # print("A : " ,A.shape)
     C = float(1/d) * A.T * A
 
     D_p, B_p = LA.eig(C)
-    # print("C : " ,C.shape)
-    # print("D_p : " ,D_p.shape)
-    # print("B_p : " ,B_p.shape)
-    # Ordenar los eigenvalues y eigenvectors
     sort_indexes = D_p.argsort()[::-1]
     D_p = D_p[sort_indexes]
     B_p = B_p[:, sort_indexes]
     B = A * B_p
     D = float(d/n) * D_p
-    # print(D)
+
     return B/LA.norm(B, axis = 0)
 
 def transform(images, matrix, dim):
@@ -85,15 +73,16 @@ if __name__ == '__main__':
     train_images, train_labels = read_images(TRAIN_DATA_PATH)
     test_images, test_labels = read_images(TEST_DATA_PATH)
     matrix = calculate_PCA(train_images)
-    plt.imshow(np.reshape(matrix[:, 7], (112, 92)))
-    plt.show()
 
-    train = transform(train_images, matrix, 179)
-    test = transform(test_images, matrix, 179)
+    # plt.imshow(np.reshape(matrix[:, 2], (112, 92)))
+    # plt.show()
+
+    train = transform(train_images, matrix, 30)
+    test = transform(test_images, matrix, 30)
 
     clf = KNeighborsClassifier(n_neighbors = 1)
     clf.fit(train, train_labels)
-    print(clf.score(test, test_labels))
+    print("Accuracy with 30 dimensions : ", clf.score(test, test_labels))
 
     scores = []
     matrix = calculate_PCA(train_images)
@@ -105,9 +94,9 @@ if __name__ == '__main__':
         scores.append(clf.score(test, test_labels))
     scores = np.array(scores)
     print("Best result ", np.amax(scores), "with " , np.argmax(scores), " components")
-
-    plt.figure(figsize=(18, 7))
-    plt.plot(scores)
+    fig, ax = plt.subplots()
+    ax.plot(scores)
     plt.xlabel("dimensions")
     plt.ylabel("accuracy")
+    plt.savefig("pca.png")
     plt.show()
